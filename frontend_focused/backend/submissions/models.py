@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Broker(models.Model):
@@ -47,13 +48,21 @@ class Submission(models.Model):
         MEDIUM = "medium", "Medium"
         LOW = "low", "Low"
 
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="submissions")
-    broker = models.ForeignKey(Broker, on_delete=models.PROTECT, related_name="submissions")
-    owner = models.ForeignKey(TeamMember, on_delete=models.PROTECT, related_name="submissions")
+    company = models.ForeignKey(
+        Company, on_delete=models.CASCADE, related_name="submissions"
+    )
+    broker = models.ForeignKey(
+        Broker, on_delete=models.PROTECT, related_name="submissions"
+    )
+    owner = models.ForeignKey(
+        TeamMember, on_delete=models.PROTECT, related_name="submissions"
+    )
     status = models.CharField(max_length=32, choices=Status.choices, default=Status.NEW)
-    priority = models.CharField(max_length=32, choices=Priority.choices, default=Priority.MEDIUM)
+    priority = models.CharField(
+        max_length=32, choices=Priority.choices, default=Priority.MEDIUM
+    )
     summary = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -64,7 +73,9 @@ class Submission(models.Model):
 
 
 class Contact(models.Model):
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name="contacts")
+    submission = models.ForeignKey(
+        Submission, on_delete=models.CASCADE, related_name="contacts"
+    )
     name = models.CharField(max_length=255)
     role = models.CharField(max_length=255, blank=True)
     email = models.EmailField(blank=True)
@@ -78,7 +89,9 @@ class Contact(models.Model):
 
 
 class Document(models.Model):
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name="documents")
+    submission = models.ForeignKey(
+        Submission, on_delete=models.CASCADE, related_name="documents"
+    )
     title = models.CharField(max_length=255)
     doc_type = models.CharField(max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -92,14 +105,15 @@ class Document(models.Model):
 
 
 class Note(models.Model):
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name="notes")
+    submission = models.ForeignKey(
+        Submission, on_delete=models.CASCADE, related_name="notes"
+    )
     author_name = models.CharField(max_length=255)
     body = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self) -> str:  # pragma: no cover - simple repr
         return f"{self.author_name} - {self.created_at:%Y-%m-%d}"
-
