@@ -38,7 +38,12 @@
   # Django admin registration
   - Registering the 4 models in Django's built-in admin so you get a free CRUD UI at /admin/ — useful for eyeballing data while we build the API, without writing any frontend yet.
 
-  Initial migration + migrate sanity check
+  # Initial migration + migrate sanity check
+  - Django doesn't touch the database until you generate a migration file (a Python file describing the schema change) and apply it. makemigrations reads your models and writes that file; migrate executes it against db.sqlite3.
+
+  python manage.py createsuperuser - change if it is in production stage
+  -admin, admin@admin.com, password
+
   Serializers
   Basic CRUD — ViewSets + router, all 4 models
   Vehicle detail endpoint — optimized for hundreds of maintenance records
