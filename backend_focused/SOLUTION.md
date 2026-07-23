@@ -48,6 +48,7 @@
   - Creating backend/fleet/serializers.py — DRF's translation layer between model instances and JSON, plus where field-level validation lives.
 
   # Basic CRUD — ViewSets + router, all 4 models
+  - Wiring the serializers to actual HTTP endpoints. DRF's ModelViewSet + DefaultRouter combo gives you list/create/retrieve/update/delete for a model from ~2 lines each — this is the payoff for setting up serializers properly in Step 4.
 
   # Vehicle detail endpoint — optimized for hundreds of maintenance records
 
