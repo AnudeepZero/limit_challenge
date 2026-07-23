@@ -80,7 +80,7 @@ export default function SubmissionsPage() {
                 helperText="Populate options via /api/brokers"
               >
                 <MenuItem value="">All brokers</MenuItem>
-                {brokerQuery.data?.map((broker) => (
+                {brokerQuery.data?.results.map((broker) => (
                   <MenuItem key={broker.id} value={String(broker.id)}>
                     {broker.name}
                   </MenuItem>

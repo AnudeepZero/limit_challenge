@@ -51,14 +51,6 @@ http://localhost:8000/api/submissions/
      /api/submissions/?brokerId=10
      /api/submissions/?brokerId=10
 
-Test backend filters.
-Optimize backend queryset.
-Enable frontend React Query hooks.
-Render broker dropdown from API.
-Render submissions list.
-Add loading/error/empty states.
-Add pagination.
-Build detail page.
-Polish UI.
-Update README.
-Final end-to-end test.
+- 3. ## Enable frontend React Query hooks
+
+  I fixed a type mismatch where the broker hook assumed a bare array but the API returns a paginated envelope — enabling the query without that fix would have been a runtime bug masked by a stale type, so I caught it at compile time instead."
