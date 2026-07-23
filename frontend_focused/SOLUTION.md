@@ -14,7 +14,8 @@ Update README.
 Final end-to-end test.
 
 Order:
-Run backend and inspect current API.
+
+- 1. ## Run backend and inspect current API.
 
 ```bash
 cd backend
@@ -46,7 +47,10 @@ http://localhost:8000/api/submissions/
 
 - Pagination may yield inconsistent results with an unordered object_list
 
-Add brokerId and companySearch filters in DRF.
+- 2. ## Add brokerId and companySearch filters in DRF.
+     /api/submissions/?brokerId=10
+     /api/submissions/?brokerId=10
+
 Test backend filters.
 Optimize backend queryset.
 Enable frontend React Query hooks.
