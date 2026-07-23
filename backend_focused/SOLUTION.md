@@ -35,7 +35,9 @@
   # Models — Office, Vehicle, Mechanic, MaintenanceRecord with relations & constraints
   - Defining the 4 core tables and their relationships in backend/fleet/models.py. This is the foundation everything else builds on — serializers, views, and the aggregation endpoints all read off these fields, so getting field types and constraints right now saves rework later.
 
-  Django admin registration
+  # Django admin registration
+  - Registering the 4 models in Django's built-in admin so you get a free CRUD UI at /admin/ — useful for eyeballing data while we build the API, without writing any frontend yet.
+
   Initial migration + migrate sanity check
   Serializers
   Basic CRUD — ViewSets + router, all 4 models
