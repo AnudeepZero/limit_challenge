@@ -82,3 +82,36 @@ class VehicleDetailSerializer(serializers.ModelSerializer):
             "id", "vin", "license_plate", "make", "model", "year",
             "office", "active", "maintenance_records",
         ]
+
+
+class VehicleAssignSerializer(serializers.Serializer):
+    office = serializers.PrimaryKeyRelatedField(queryset=Office.objects.all())
+
+
+class OfficeSummarySerializer(serializers.ModelSerializer):
+    active_vehicle_count = serializers.IntegerField(read_only=True)
+    maintenance_cost_last_year = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+    last_maintenance = serializers.DateField(read_only=True)
+
+    class Meta:
+        model = Office
+        fields = [
+            "name",
+            "city",
+            "active_vehicle_count",
+            "maintenance_cost_last_year",
+            "last_maintenance",
+        ]
+
+
+class MechanicWorkloadSerializer(serializers.ModelSerializer):
+    maintenance_record_count = serializers.IntegerField(read_only=True)
+    total_maintenance_cost = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+
+    class Meta:
+        model = Mechanic
+        fields = ["name", "maintenance_record_count", "total_maintenance_cost"]

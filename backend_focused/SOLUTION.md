@@ -51,18 +51,29 @@
   - Wiring the serializers to actual HTTP endpoints. DRF's ModelViewSet + DefaultRouter combo gives you list/create/retrieve/update/delete for a model from ~2 lines each — this is the payoff for setting up serializers properly in Step 4.
 
   # Vehicle detail endpoint — optimized for hundreds of maintenance records
+  - GET /api/vehicles/{id}/ should return the vehicle plus nested office info plus the full maintenance history plus the mechanic for each record
+  - Fix — update DEFAULT_RENDERER_CLASSES in backend/server/settings.py
 
   # Vehicle search/filter endpoint — combinable filters
+  - GET /api/vehicles/?office=1&active=true&make=Toyota&maintenance_from=2025-01-01&maintenance_to=2025-12-31&mechanic_certification_number=ABC123 — all filters optional, combinable.
+  - pip install django-filter
 
   # Vehicle maintenance history endpoint
+  - GET /api/vehicles/{id}/maintenance-history/ returning just that vehicle's maintenance records, newest-to-oldest.
+  - DRF's @action decorator lets you attach a custom method to a ViewSet that the router auto-wires into a URL — no changes needed to urls.py, the router picks it up because it's registered against VehicleViewSet.
 
   # Assign-vehicle endpoint
+  - POST /api/vehicles/{id}/assign/
 
   # Office summary endpoint (aggregation)
+  - http://localhost:8000/api/offices/summary/
+  - one endpoint returning every office with 3 computed metrics: active vehicle count, maintenance cost over the last 12 months, and the most recent maintenance date. This is the meatiest aggregation endpoint in the challenge
 
   # Mechanic workload endpoint
+  - README item 7 — mechanic name, count of maintenance records completed this calendar year, and total cost of that work, ordered busiest-first.
 
   # Vehicles-needing-maintenance endpoint
+  - README item 7 — mechanic name, count of maintenance records completed this calendar year, and total cost of that work, ordered busiest-first.
 
   # Duplicate VIN/plate check endpoint
 
