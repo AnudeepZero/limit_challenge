@@ -1,5 +1,7 @@
 'use client';
 
+import { Pagination } from '@mui/material';
+
 import {
   Alert,
   Box,
@@ -21,10 +23,11 @@ import {
 } from '@mui/material';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-
 import { useBrokerOptions } from '@/lib/hooks/useBrokerOptions';
 import { useSubmissionsList } from '@/lib/hooks/useSubmissions';
 import { SubmissionPriority, SubmissionStatus } from '@/lib/types';
+
+const PAGE_SIZE = 10;
 
 const STATUS_OPTIONS: { label: string; value: SubmissionStatus | '' }[] = [
   { label: 'All statuses', value: '' },
@@ -59,14 +62,16 @@ export default function SubmissionsPage() {
   const [status, setStatus] = useState<SubmissionStatus | ''>('');
   const [brokerId, setBrokerId] = useState('');
   const [companyQuery, setCompanyQuery] = useState('');
+  const [page, setPage] = useState(1);
 
   const filters = useMemo(
     () => ({
       status: status || undefined,
       brokerId: brokerId || undefined,
       companySearch: companyQuery || undefined,
+      page,
     }),
-    [status, brokerId, companyQuery],
+    [status, brokerId, companyQuery, page],
   );
 
   const submissionsQuery = useSubmissionsList(filters);
@@ -91,7 +96,10 @@ export default function SubmissionsPage() {
                 select
                 label="Status"
                 value={status}
-                onChange={(event) => setStatus(event.target.value as SubmissionStatus | '')}
+                onChange={(event) => {
+                  setStatus(event.target.value as SubmissionStatus | '');
+                  setPage(1);
+                }}
                 fullWidth
               >
                 {STATUS_OPTIONS.map((option) => (
@@ -104,7 +112,10 @@ export default function SubmissionsPage() {
                 select
                 label="Broker"
                 value={brokerId}
-                onChange={(event) => setBrokerId(event.target.value)}
+                onChange={(event) => {
+                  setBrokerId(event.target.value);
+                  setPage(1);
+                }}
                 fullWidth
               >
                 <MenuItem value="">All brokers</MenuItem>
@@ -117,7 +128,10 @@ export default function SubmissionsPage() {
               <TextField
                 label="Company search"
                 value={companyQuery}
-                onChange={(event) => setCompanyQuery(event.target.value)}
+                onChange={(event) => {
+                  setCompanyQuery(event.target.value);
+                  setPage(1);
+                }}
                 fullWidth
                 helperText="Send as ?companySearch=..."
               />
@@ -144,54 +158,63 @@ export default function SubmissionsPage() {
             )}
 
             {submissionsQuery.isSuccess && submissionsQuery.data.results.length > 0 && (
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Company</TableCell>
-                      <TableCell>Broker</TableCell>
-                      <TableCell>Owner</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Priority</TableCell>
-                      <TableCell>Created</TableCell>
-                      <TableCell align="right">Docs</TableCell>
-                      <TableCell align="right">Notes</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {submissionsQuery.data.results.map((submission) => (
-                      <TableRow
-                        key={submission.id}
-                        hover
-                        component={Link}
-                        href={`/submissions/${submission.id}`}
-                        sx={{ textDecoration: 'none', cursor: 'pointer' }}
-                      >
-                        <TableCell>{submission.company.legalName}</TableCell>
-                        <TableCell>{submission.broker.name}</TableCell>
-                        <TableCell>{submission.owner.fullName}</TableCell>
-                        <TableCell>
-                          <Chip
-                            size="small"
-                            label={submission.status.replace('_', ' ')}
-                            color={STATUS_COLOR[submission.status]}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            size="small"
-                            label={submission.priority}
-                            color={PRIORITY_COLOR[submission.priority]}
-                          />
-                        </TableCell>
-                        <TableCell>{formatDate(submission.createdAt)}</TableCell>
-                        <TableCell align="right">{submission.documentCount}</TableCell>
-                        <TableCell align="right">{submission.noteCount}</TableCell>
+              <>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Company</TableCell>
+                        <TableCell>Broker</TableCell>
+                        <TableCell>Owner</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Priority</TableCell>
+                        <TableCell>Created</TableCell>
+                        <TableCell align="right">Docs</TableCell>
+                        <TableCell align="right">Notes</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {submissionsQuery.data.results.map((submission) => (
+                        <TableRow
+                          key={submission.id}
+                          hover
+                          component={Link}
+                          href={`/submissions/${submission.id}`}
+                          sx={{ textDecoration: 'none', cursor: 'pointer' }}
+                        >
+                          <TableCell>{submission.company.legalName}</TableCell>
+                          <TableCell>{submission.broker.name}</TableCell>
+                          <TableCell>{submission.owner.fullName}</TableCell>
+                          <TableCell>
+                            <Chip
+                              size="small"
+                              label={submission.status.replace('_', ' ')}
+                              color={STATUS_COLOR[submission.status]}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              size="small"
+                              label={submission.priority}
+                              color={PRIORITY_COLOR[submission.priority]}
+                            />
+                          </TableCell>
+                          <TableCell>{formatDate(submission.createdAt)}</TableCell>
+                          <TableCell align="right">{submission.documentCount}</TableCell>
+                          <TableCell align="right">{submission.noteCount}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <Stack alignItems="center" pt={2}>
+                  <Pagination
+                    count={Math.ceil(submissionsQuery.data.count / PAGE_SIZE)}
+                    page={page}
+                    onChange={(_, value) => setPage(value)}
+                  />
+                </Stack>
+              </>
             )}
           </CardContent>
         </Card>
