@@ -44,20 +44,34 @@
   python manage.py createsuperuser - change if it is in production stage
   -admin, admin@admin.com, password
 
-  Serializers
-  Basic CRUD — ViewSets + router, all 4 models
-  Vehicle detail endpoint — optimized for hundreds of maintenance records
-  Vehicle search/filter endpoint — combinable filters
-  Vehicle maintenance history endpoint
-  Assign-vehicle endpoint
-  Office summary endpoint (aggregation)
-  Mechanic workload endpoint
-  Vehicles-needing-maintenance endpoint
-  Duplicate VIN/plate check endpoint
-  Management command — Faker seed data
-  Error handling pass
-  Tests
-  SOLUTION.md write-up (backend half)
+  # Serializers
+  - Creating backend/fleet/serializers.py — DRF's translation layer between model instances and JSON, plus where field-level validation lives.
+
+  # Basic CRUD — ViewSets + router, all 4 models
+
+  # Vehicle detail endpoint — optimized for hundreds of maintenance records
+
+  # Vehicle search/filter endpoint — combinable filters
+
+  # Vehicle maintenance history endpoint
+
+  # Assign-vehicle endpoint
+
+  # Office summary endpoint (aggregation)
+
+  # Mechanic workload endpoint
+
+  # Vehicles-needing-maintenance endpoint
+
+  # Duplicate VIN/plate check endpoint
+
+  # Management command — Faker seed data
+
+  # Error handling pass
+
+  # Tests
+
+  # SOLUTION.md write-up (backend half)
 
 - ## Part 2 — Frontend (25% weight)
 
