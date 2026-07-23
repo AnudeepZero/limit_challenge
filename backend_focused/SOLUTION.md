@@ -216,6 +216,8 @@ without a test failure.
 
 18. Review the pre-wired scaffold — `api-client.ts`, `providers.tsx`, `package.json` — understand
     what's already set up (axios instance, react-query provider) before writing anything
+    - Typed TypeScript types matching our DRF serializers' JSON shape, plus fetch functions and React Query hooks for the two endpoints we know we need for sure (vehicle list with filters, vehicle detail). We'll add the fetcher for the "one more endpoint" in Step 24, once we've picked which one.
+
 19. API layer — typed functions/hooks per endpoint we'll use (list, detail, search, + 1 chosen
     extra endpoint)
 20. Vehicle list page — react-query fetch, loading/empty/error states
