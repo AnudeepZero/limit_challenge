@@ -84,6 +84,9 @@
   - README deliverables list requires "a Django management command that fills the database with dummy data" — this is backend/fleet/management/commands/seed_data.py
 
   # Error handling pass
+  - README explicitly grades "Return appropriate HTTP status codes for invalid requests. Validation errors should include meaningful messages." Most of this we already get for free from DRF — invalid serializer data → automatic 400 with field-level messages, nonexistent object → automatic 404, wrong HTTP verb → automatic 405.
+
+  - ProtectedError → 409 Conflict (the correct HTTP semantics for "this action conflicts with the current state of the server" — a delete blocked by dependent records is exactly that). IntegrityError (generic) → 400 Bad Request — this is a safety net under the manual uniqueness check we wrote in VehicleSerializer.validate()
 
   # Tests
 
