@@ -22,7 +22,7 @@ import {
   Typography,
 } from '@mui/material';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useBrokerOptions } from '@/lib/hooks/useBrokerOptions';
 import { useSubmissionsList } from '@/lib/hooks/useSubmissions';
 import { SubmissionPriority, SubmissionStatus } from '@/lib/types';
@@ -58,8 +58,7 @@ function formatDate(value: string) {
     day: 'numeric',
   });
 }
-
-export default function SubmissionsPage() {
+function SubmissionsPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -250,5 +249,21 @@ export default function SubmissionsPage() {
         </Card>
       </Stack>
     </Container>
+  );
+}
+
+export default function SubmissionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container maxWidth="lg" sx={{ py: 6 }}>
+          <Stack alignItems="center" py={4}>
+            <CircularProgress />
+          </Stack>
+        </Container>
+      }
+    >
+      <SubmissionsPageContent />
+    </Suspense>
   );
 }
