@@ -32,7 +32,9 @@
 
 - ## Part 1 — Backend (unchanged, 50% weight)
 
-  Models — Office, Vehicle, Mechanic, MaintenanceRecord with relations & constraints
+  # Models — Office, Vehicle, Mechanic, MaintenanceRecord with relations & constraints
+  - Defining the 4 core tables and their relationships in backend/fleet/models.py. This is the foundation everything else builds on — serializers, views, and the aggregation endpoints all read off these fields, so getting field types and constraints right now saves rework later.
+
   Django admin registration
   Initial migration + migrate sanity check
   Serializers
