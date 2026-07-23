@@ -1,21 +1,30 @@
 'use client';
 
 import {
+  Alert,
   Box,
   Card,
   CardContent,
+  Chip,
+  CircularProgress,
   Container,
-  Divider,
   MenuItem,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Typography,
 } from '@mui/material';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { useBrokerOptions } from '@/lib/hooks/useBrokerOptions';
 import { useSubmissionsList } from '@/lib/hooks/useSubmissions';
-import { SubmissionStatus } from '@/lib/types';
+import { SubmissionPriority, SubmissionStatus } from '@/lib/types';
 
 const STATUS_OPTIONS: { label: string; value: SubmissionStatus | '' }[] = [
   { label: 'All statuses', value: '' },
@@ -24,6 +33,27 @@ const STATUS_OPTIONS: { label: string; value: SubmissionStatus | '' }[] = [
   { label: 'Closed', value: 'closed' },
   { label: 'Lost', value: 'lost' },
 ];
+
+const STATUS_COLOR: Record<SubmissionStatus, 'info' | 'warning' | 'success' | 'default'> = {
+  new: 'info',
+  in_review: 'warning',
+  closed: 'success',
+  lost: 'default',
+};
+
+const PRIORITY_COLOR: Record<SubmissionPriority, 'error' | 'warning' | 'default'> = {
+  high: 'error',
+  medium: 'warning',
+  low: 'default',
+};
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
 
 export default function SubmissionsPage() {
   const [status, setStatus] = useState<SubmissionStatus | ''>('');
@@ -50,8 +80,7 @@ export default function SubmissionsPage() {
             Submissions
           </Typography>
           <Typography color="text.secondary">
-            Filters update the query parameters and drive backend filtering. Hook these inputs to
-            your API calls when you implement the actual data fetching.
+            Filters update the query parameters and drive backend filtering.
           </Typography>
         </Box>
 
@@ -77,7 +106,6 @@ export default function SubmissionsPage() {
                 value={brokerId}
                 onChange={(event) => setBrokerId(event.target.value)}
                 fullWidth
-                helperText="Populate options via /api/brokers"
               >
                 <MenuItem value="">All brokers</MenuItem>
                 {brokerQuery.data?.results.map((broker) => (
@@ -99,19 +127,72 @@ export default function SubmissionsPage() {
 
         <Card variant="outlined">
           <CardContent>
-            <Stack spacing={2}>
-              <Typography variant="h6">Submission list</Typography>
-              <Typography color="text.secondary">
-                Hook `submissionsQuery` to render rows, totals, and pagination states. The query is
-                disabled by default so no network calls fire until you enable it.
-              </Typography>
-              <Divider />
-              <Box>
-                <pre style={{ margin: 0, fontSize: 14 }}>
-                  {JSON.stringify({ filters, queryKey: submissionsQuery.queryKey }, null, 2)}
-                </pre>
-              </Box>
-            </Stack>
+            {submissionsQuery.isPending && (
+              <Stack alignItems="center" py={4}>
+                <CircularProgress />
+              </Stack>
+            )}
+
+            {submissionsQuery.isError && (
+              <Alert severity="error">
+                Failed to load submissions: {submissionsQuery.error.message}
+              </Alert>
+            )}
+
+            {submissionsQuery.isSuccess && submissionsQuery.data.results.length === 0 && (
+              <Alert severity="info">No submissions match these filters.</Alert>
+            )}
+
+            {submissionsQuery.isSuccess && submissionsQuery.data.results.length > 0 && (
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Company</TableCell>
+                      <TableCell>Broker</TableCell>
+                      <TableCell>Owner</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Priority</TableCell>
+                      <TableCell>Created</TableCell>
+                      <TableCell align="right">Docs</TableCell>
+                      <TableCell align="right">Notes</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {submissionsQuery.data.results.map((submission) => (
+                      <TableRow
+                        key={submission.id}
+                        hover
+                        component={Link}
+                        href={`/submissions/${submission.id}`}
+                        sx={{ textDecoration: 'none', cursor: 'pointer' }}
+                      >
+                        <TableCell>{submission.company.legalName}</TableCell>
+                        <TableCell>{submission.broker.name}</TableCell>
+                        <TableCell>{submission.owner.fullName}</TableCell>
+                        <TableCell>
+                          <Chip
+                            size="small"
+                            label={submission.status.replace('_', ' ')}
+                            color={STATUS_COLOR[submission.status]}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            size="small"
+                            label={submission.priority}
+                            color={PRIORITY_COLOR[submission.priority]}
+                          />
+                        </TableCell>
+                        <TableCell>{formatDate(submission.createdAt)}</TableCell>
+                        <TableCell align="right">{submission.documentCount}</TableCell>
+                        <TableCell align="right">{submission.noteCount}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
           </CardContent>
         </Card>
       </Stack>
