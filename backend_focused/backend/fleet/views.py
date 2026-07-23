@@ -1,4 +1,8 @@
+from .filters import VehicleFilter
 from rest_framework import viewsets
+
+from .filters import VehicleFilter
+
 
 from .models import MaintenanceRecord, Mechanic, Office, Vehicle
 from .serializers import (
@@ -16,11 +20,15 @@ class OfficeViewSet(viewsets.ModelViewSet):
 
 
 class VehicleViewSet(viewsets.ModelViewSet):
+    filterset_class = VehicleFilter
+
     def get_queryset(self):
         if self.action == "retrieve":
             return Vehicle.objects.select_related("office").prefetch_related(
                 "maintenance_records__mechanic"
             )
+        if self.action == "list":
+            return Vehicle.objects.all().order_by("id").distinct()
         return Vehicle.objects.all().order_by("id")
 
     def get_serializer_class(self):
