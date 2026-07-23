@@ -54,3 +54,7 @@ http://localhost:8000/api/submissions/
 - 3. ## Enable frontend React Query hooks
 
   I fixed a type mismatch where the broker hook assumed a bare array but the API returns a paginated envelope — enabling the query without that fix would have been a runtime bug masked by a stale type, so I caught it at compile time instead."
+
+- 4. ## pagination Fixed
+
+- 5. ## Detail Page
