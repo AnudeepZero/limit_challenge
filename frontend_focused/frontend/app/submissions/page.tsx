@@ -26,6 +26,7 @@ import { useMemo, useState } from 'react';
 import { useBrokerOptions } from '@/lib/hooks/useBrokerOptions';
 import { useSubmissionsList } from '@/lib/hooks/useSubmissions';
 import { SubmissionPriority, SubmissionStatus } from '@/lib/types';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 const PAGE_SIZE = 10;
 
@@ -59,11 +60,31 @@ function formatDate(value: string) {
 }
 
 export default function SubmissionsPage() {
-  const [status, setStatus] = useState<SubmissionStatus | ''>('');
-  const [brokerId, setBrokerId] = useState('');
-  const [companyQuery, setCompanyQuery] = useState('');
-  const [page, setPage] = useState(1);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
+  const [status, setStatus] = useState<SubmissionStatus | ''>(
+    (searchParams.get('status') as SubmissionStatus) || '',
+  );
+  const [brokerId, setBrokerId] = useState(searchParams.get('brokerId') || '');
+  const [companyQuery, setCompanyQuery] = useState(searchParams.get('companySearch') || '');
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
+
+  function updateUrl(next: {
+    status: string;
+    brokerId: string;
+    companySearch: string;
+    page: number;
+  }) {
+    const params = new URLSearchParams();
+    if (next.status) params.set('status', next.status);
+    if (next.brokerId) params.set('brokerId', next.brokerId);
+    if (next.companySearch) params.set('companySearch', next.companySearch);
+    if (next.page > 1) params.set('page', String(next.page));
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname);
+  }
   const filters = useMemo(
     () => ({
       status: status || undefined,
@@ -97,8 +118,10 @@ export default function SubmissionsPage() {
                 label="Status"
                 value={status}
                 onChange={(event) => {
-                  setStatus(event.target.value as SubmissionStatus | '');
+                  const value = event.target.value as SubmissionStatus | '';
+                  setStatus(value);
                   setPage(1);
+                  updateUrl({ status: value, brokerId, companySearch: companyQuery, page: 1 });
                 }}
                 fullWidth
               >
@@ -113,8 +136,10 @@ export default function SubmissionsPage() {
                 label="Broker"
                 value={brokerId}
                 onChange={(event) => {
-                  setBrokerId(event.target.value);
+                  const value = event.target.value;
+                  setBrokerId(value);
                   setPage(1);
+                  updateUrl({ status, brokerId: value, companySearch: companyQuery, page: 1 });
                 }}
                 fullWidth
               >
@@ -129,8 +154,10 @@ export default function SubmissionsPage() {
                 label="Company search"
                 value={companyQuery}
                 onChange={(event) => {
-                  setCompanyQuery(event.target.value);
+                  const value = event.target.value;
+                  setCompanyQuery(value);
                   setPage(1);
+                  updateUrl({ status, brokerId, companySearch: value, page: 1 });
                 }}
                 fullWidth
                 helperText="Send as ?companySearch=..."
@@ -211,7 +238,10 @@ export default function SubmissionsPage() {
                   <Pagination
                     count={Math.ceil(submissionsQuery.data.count / PAGE_SIZE)}
                     page={page}
-                    onChange={(_, value) => setPage(value)}
+                    onChange={(_, value) => {
+                      setPage(value);
+                      updateUrl({ status, brokerId, companySearch: companyQuery, page: value });
+                    }}
                   />
                 </Stack>
               </>
