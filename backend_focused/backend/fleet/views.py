@@ -1,7 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 
-from django.db.models import Count, Max, Q, Sum
+from django.db.models import Count, Max, Q, Sum, F
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -23,6 +23,7 @@ from .serializers import (
     VehicleAssignSerializer,
     OfficeSummarySerializer,
     MechanicWorkloadSerializer,
+    VehicleNeedingMaintenanceSerializer,
 )
 
 
@@ -88,6 +89,22 @@ class VehicleViewSet(viewsets.ModelViewSet):
         vehicle.office = serializer.validated_data["office"]
         vehicle.save(update_fields=["office"])
         return Response(VehicleSerializer(vehicle).data)
+
+    @action(detail=False, methods=["get"], url_path="needing-maintenance")
+    def needing_maintenance(self, request):
+        threshold = timezone.now().date() - timedelta(days=365)
+        vehicles = (
+            Vehicle.objects.filter(active=True)
+            .annotate(last_maintenance_date=Max("maintenance_records__maintenance_date"))
+            .filter(
+                Q(last_maintenance_date__isnull=True)
+                | Q(last_maintenance_date__lt=threshold)
+            )
+            .order_by(F("last_maintenance_date").asc(nulls_first=True))
+        )
+        page = self.paginate_queryset(vehicles)
+        serializer = VehicleNeedingMaintenanceSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class MechanicViewSet(viewsets.ModelViewSet):

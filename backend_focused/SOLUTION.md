@@ -75,6 +75,8 @@
   # Vehicles-needing-maintenance endpoint
   - README item 7 — mechanic name, count of maintenance records completed this calendar year, and total cost of that work, ordered busiest-first.
 
+  - README item 8 — active vehicles that either never had maintenance, or whose last maintenance was more than 365 days ago, oldest-first.
+
   # Duplicate VIN/plate check endpoint
 
   # Management command — Faker seed data

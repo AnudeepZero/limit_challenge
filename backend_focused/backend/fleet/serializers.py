@@ -115,3 +115,20 @@ class MechanicWorkloadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mechanic
         fields = ["name", "maintenance_record_count", "total_maintenance_cost"]
+
+
+class VehicleNeedingMaintenanceSerializer(serializers.ModelSerializer):
+    last_maintenance_date = serializers.DateField(read_only=True)
+
+    class Meta:
+        model = Vehicle
+        fields = [
+            "id",
+            "vin",
+            "license_plate",
+            "make",
+            "model",
+            "year",
+            "office",
+            "last_maintenance_date",
+        ]
