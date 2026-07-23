@@ -11,9 +11,10 @@ from fleet.views import (
 
 router = DefaultRouter()
 router.register("offices", OfficeViewSet)
-router.register("vehicles", VehicleViewSet)
+router.register("vehicles", VehicleViewSet, basename="vehicle")
 router.register("mechanics", MechanicViewSet)
 router.register("maintenance-records", MaintenanceRecordViewSet)
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),

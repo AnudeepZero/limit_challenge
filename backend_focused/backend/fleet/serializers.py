@@ -60,3 +60,25 @@ class MaintenanceRecordSerializer(serializers.ModelSerializer):
         if value < 0:
             raise serializers.ValidationError("Cost cannot be negative.")
         return value
+
+
+class MaintenanceRecordDetailSerializer(serializers.ModelSerializer):
+    mechanic = MechanicSerializer(read_only=True)
+
+    class Meta:
+        model = MaintenanceRecord
+        fields = ["id", "mechanic", "maintenance_date",
+                  "maintenance_type", "cost", "notes"]
+
+
+class VehicleDetailSerializer(serializers.ModelSerializer):
+    office = OfficeSerializer(read_only=True)
+    maintenance_records = MaintenanceRecordDetailSerializer(
+        many=True, read_only=True)
+
+    class Meta:
+        model = Vehicle
+        fields = [
+            "id", "vin", "license_plate", "make", "model", "year",
+            "office", "active", "maintenance_records",
+        ]

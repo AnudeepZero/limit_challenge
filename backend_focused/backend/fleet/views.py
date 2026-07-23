@@ -5,6 +5,7 @@ from .serializers import (
     MaintenanceRecordSerializer,
     MechanicSerializer,
     OfficeSerializer,
+    VehicleDetailSerializer,
     VehicleSerializer,
 )
 
@@ -15,8 +16,17 @@ class OfficeViewSet(viewsets.ModelViewSet):
 
 
 class VehicleViewSet(viewsets.ModelViewSet):
-    queryset = Vehicle.objects.all().order_by("id")
-    serializer_class = VehicleSerializer
+    def get_queryset(self):
+        if self.action == "retrieve":
+            return Vehicle.objects.select_related("office").prefetch_related(
+                "maintenance_records__mechanic"
+            )
+        return Vehicle.objects.all().order_by("id")
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return VehicleDetailSerializer
+        return VehicleSerializer
 
 
 class MechanicViewSet(viewsets.ModelViewSet):

@@ -131,9 +131,11 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
     ],
     'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
+
 
 JSON_UNDERSCOREIZE = {
     'no_underscore_before_number': True,
