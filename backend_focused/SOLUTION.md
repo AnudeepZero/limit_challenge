@@ -81,6 +81,7 @@
   - README item 9 — given a VIN and license plate, report which (if any) already conflict with an existing vehicle, matching the exact response shape from the README's example: {"conflicts": ["vin", "license_plate"]}.
 
   # Management command — Faker seed data
+  - README deliverables list requires "a Django management command that fills the database with dummy data" — this is backend/fleet/management/commands/seed_data.py
 
   # Error handling pass
 
