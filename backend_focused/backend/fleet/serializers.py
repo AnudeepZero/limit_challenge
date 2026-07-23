@@ -132,3 +132,9 @@ class VehicleNeedingMaintenanceSerializer(serializers.ModelSerializer):
             "office",
             "last_maintenance_date",
         ]
+
+
+class DuplicateVehicleCheckSerializer(serializers.Serializer):
+    vin = serializers.CharField()
+    license_plate = serializers.CharField()
+    exclude_vehicle_id = serializers.IntegerField(required=False)

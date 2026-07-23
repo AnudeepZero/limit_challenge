@@ -24,6 +24,7 @@ from .serializers import (
     OfficeSummarySerializer,
     MechanicWorkloadSerializer,
     VehicleNeedingMaintenanceSerializer,
+    DuplicateVehicleCheckSerializer,
 )
 
 
@@ -105,6 +106,30 @@ class VehicleViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(vehicles)
         serializer = VehicleNeedingMaintenanceSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=["get"], url_path="duplicate-check")
+    def duplicate_check(self, request):
+        params = DuplicateVehicleCheckSerializer(data=request.query_params)
+        params.is_valid(raise_exception=True)
+        vin = params.validated_data["vin"]
+        license_plate = params.validated_data["license_plate"]
+        exclude_vehicle_id = params.validated_data.get("exclude_vehicle_id")
+
+        vin_conflicts = Vehicle.objects.filter(vin=vin)
+        plate_conflicts = Vehicle.objects.filter(
+            license_plate=license_plate, active=True)
+
+        if exclude_vehicle_id is not None:
+            vin_conflicts = vin_conflicts.exclude(pk=exclude_vehicle_id)
+            plate_conflicts = plate_conflicts.exclude(pk=exclude_vehicle_id)
+
+        conflicts = []
+        if vin_conflicts.exists():
+            conflicts.append("vin")
+        if plate_conflicts.exists():
+            conflicts.append("license_plate")
+
+        return Response({"conflicts": conflicts})
 
 
 class MechanicViewSet(viewsets.ModelViewSet):

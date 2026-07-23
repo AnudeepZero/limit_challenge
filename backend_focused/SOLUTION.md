@@ -78,6 +78,7 @@
   - README item 8 — active vehicles that either never had maintenance, or whose last maintenance was more than 365 days ago, oldest-first.
 
   # Duplicate VIN/plate check endpoint
+  - README item 9 — given a VIN and license plate, report which (if any) already conflict with an existing vehicle, matching the exact response shape from the README's example: {"conflicts": ["vin", "license_plate"]}.
 
   # Management command — Faker seed data
 
