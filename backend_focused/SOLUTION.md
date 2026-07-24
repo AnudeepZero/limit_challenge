@@ -226,6 +226,9 @@ without a test failure.
 - Replacing the placeholder frontend/app/page.tsx with a real vehicle list — fetching via the useVehicles
 
 21. Filters UI wired to URL query params (office, active, make, model, date range, mechanic cert)
+
+- Filter controls (office, active, make, model, maintenance date range, mechanic cert) that read their current value from the URL and write changes back to it
+
 22. Pagination wired to URL query params
 23. Vehicle detail page — office info, maintenance history, mechanic per record
 24. Pick + build the "one more endpoint" the README asks for (office summary dashboard, or

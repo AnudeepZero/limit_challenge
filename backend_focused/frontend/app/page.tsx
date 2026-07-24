@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import {
   Alert,
   Box,
@@ -11,16 +12,40 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import { useSearchParams } from 'next/navigation';
 import { useVehicles } from '@/lib/vehicles';
+import type { VehicleFilters } from '@/lib/types';
+import VehicleFiltersBar from './vehicle-filters';
 
-export default function HomePage() {
-  const { data, isPending, isError, error } = useVehicles({});
+function buildFilters(searchParams: URLSearchParams): VehicleFilters {
+  const filters: VehicleFilters = {};
+  const office = searchParams.get('office');
+  const active = searchParams.get('active');
+  const make = searchParams.get('make');
+  const model = searchParams.get('model');
+  const maintenanceFrom = searchParams.get('maintenance_from');
+  const maintenanceTo = searchParams.get('maintenance_to');
+  const mechanicCert = searchParams.get('mechanic_certification_number');
+
+  if (office) filters.office = Number(office);
+  if (active) filters.active = active === 'true';
+  if (make) filters.make = make;
+  if (model) filters.model = model;
+  if (maintenanceFrom) filters.maintenance_from = maintenanceFrom;
+  if (maintenanceTo) filters.maintenance_to = maintenanceTo;
+  if (mechanicCert) filters.mechanic_certification_number = mechanicCert;
+
+  return filters;
+}
+
+function VehicleList() {
+  const searchParams = useSearchParams();
+  const filters = buildFilters(searchParams);
+  const { data, isPending, isError, error } = useVehicles(filters);
 
   return (
-    <Container maxWidth="md" sx={{ py: 6 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Fleet Vehicles
-      </Typography>
+    <>
+      <VehicleFiltersBar />
 
       {isPending && (
         <Box display="flex" justifyContent="center" py={6}>
@@ -60,6 +85,25 @@ export default function HomePage() {
           ))}
         </Stack>
       )}
+    </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Container maxWidth="md" sx={{ py: 6 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Fleet Vehicles
+      </Typography>
+      <Suspense
+        fallback={
+          <Box display="flex" justifyContent="center" py={6}>
+            <CircularProgress />
+          </Box>
+        }
+      >
+        <VehicleList />
+      </Suspense>
     </Container>
   );
 }
