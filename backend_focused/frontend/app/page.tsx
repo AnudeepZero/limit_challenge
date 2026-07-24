@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import {
   Alert,
   Box,
@@ -20,6 +20,7 @@ import { useVehicles } from '@/lib/vehicles';
 import type { VehicleFilters } from '@/lib/types';
 import VehicleFiltersBar from './vehicle-filters';
 import Link from 'next/link';
+import VehicleFormDialog from '@/app/vehicle-form-dialog';
 
 // Must match REST_FRAMEWORK['PAGE_SIZE'] in backend/server/settings.py
 const PAGE_SIZE = 10;
@@ -136,11 +137,18 @@ function VehicleList() {
 }
 
 export default function HomePage() {
+  const [formOpen, setFormOpen] = useState(false);
+
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Fleet Vehicles
-      </Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+        <Typography variant="h4" component="h1">
+          Fleet Vehicles
+        </Typography>
+        <Button variant="contained" onClick={() => setFormOpen(true)}>
+          + Add Vehicle
+        </Button>
+      </Stack>
       <Button
         component={Link}
         href="/needing-maintenance"
@@ -159,6 +167,7 @@ export default function HomePage() {
       >
         <VehicleList />
       </Suspense>
+      <VehicleFormDialog open={formOpen} onClose={() => setFormOpen(false)} />
     </Container>
   );
 }

@@ -1,27 +1,44 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   Stack,
   Typography,
-  Button,
 } from '@mui/material';
 import { isAxiosError } from 'axios';
-import { useVehicle } from '@/lib/vehicles';
+import { useDeleteVehicle, useVehicle } from '@/lib/vehicles';
+import VehicleFormDialog from '@/app/vehicle-form-dialog';
 
 export default function VehicleDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const vehicleId = Number(id);
+  const router = useRouter();
   const { data: vehicle, isPending, isError, error, refetch } = useVehicle(vehicleId);
+  const deleteVehicle = useDeleteVehicle();
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  function handleDelete() {
+    deleteVehicle.mutate(vehicleId, {
+      onSuccess: () => router.push('/'),
+    });
+  }
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
@@ -57,10 +74,18 @@ export default function VehicleDetailPage({ params }: { params: Promise<{ id: st
             <Typography variant="h4" component="h1">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </Typography>
-            <Chip
-              label={vehicle.active ? 'Active' : 'Inactive'}
-              color={vehicle.active ? 'success' : 'default'}
-            />
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Chip
+                label={vehicle.active ? 'Active' : 'Inactive'}
+                color={vehicle.active ? 'success' : 'default'}
+              />
+              <Button size="small" onClick={() => setEditOpen(true)}>
+                Edit
+              </Button>
+              <Button size="small" color="error" onClick={() => setDeleteOpen(true)}>
+                Delete
+              </Button>
+            </Stack>
           </Stack>
           <Typography color="text.secondary">VIN: {vehicle.vin}</Typography>
           <Typography color="text.secondary" gutterBottom>
@@ -109,8 +134,39 @@ export default function VehicleDetailPage({ params }: { params: Promise<{ id: st
               ))}
             </Stack>
           )}
+
+          <VehicleFormDialog
+            open={editOpen}
+            onClose={() => setEditOpen(false)}
+            vehicle={{
+              id: vehicle.id,
+              vin: vehicle.vin,
+              license_plate: vehicle.license_plate,
+              make: vehicle.make,
+              model: vehicle.model,
+              year: vehicle.year,
+              office: vehicle.office.id,
+              active: vehicle.active,
+            }}
+          />
         </>
       )}
+
+      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
+        <DialogTitle>Delete vehicle?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will permanently delete this vehicle and its maintenance history. This cannot be
+            undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
+          <Button color="error" onClick={handleDelete} disabled={deleteVehicle.isPending}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

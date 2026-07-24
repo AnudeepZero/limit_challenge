@@ -9,7 +9,8 @@ endpoint builds on it, then the 8 custom README endpoints one at a time, then th
 error handling, and tests last, once there was real behavior worth testing.
 
 - **Part 1 — Backend: implemented, see step-by-step below.**
-- **Part 2 — Frontend: planned, not yet implemented** (kept here as the working plan for what's next).
+- **Part 2 — Frontend: implemented, see step-by-step below.** Only the demo video recording itself
+  remains.
 
 ## How to run the backend
 
@@ -212,42 +213,105 @@ without a test failure.
 
 ---
 
-## Part 2 — Frontend (25% weight) — planned, not yet implemented
+## Part 2 — Frontend (25% weight) — implemented
 
-18. Review the pre-wired scaffold — `api-client.ts`, `providers.tsx`, `package.json` — understand
-    what's already set up (axios instance, react-query provider) before writing anything
+### 18. Review the pre-wired scaffold
 
-19. API layer — typed functions/hooks per endpoint we'll use (list, detail, search, + 1 chosen
-    extra endpoint)
-    - Typed TypeScript types matching our DRF serializers' JSON shape, plus fetch functions and React Query hooks for the two endpoints we know we need for sure (vehicle list with filters, vehicle detail). We'll add the fetcher for the "one more endpoint" in Step 24, once we've picked which one.
+Reviewed `frontend/lib/api-client.ts` (a shared axios instance pointed at `NEXT_PUBLIC_API_BASE_URL`,
+defaulting to the Django API root), `frontend/app/providers.tsx` (already wraps the app in
+`QueryClientProvider` + MUI `ThemeProvider`), and confirmed exact dependency versions from
+`package.json`: **Next.js 16.2.1, React 19.2.4, MUI v7, TanStack Query v5**. `frontend/AGENTS.md`
+warns this Next.js version has breaking changes from older conventions and to read the bundled
+docs before writing code — that warning turned out to matter (see step 23).
+**Where:** reviewed only, no files changed
 
-20. Vehicle list page — react-query fetch, loading/empty/error states
+### 19. Frontend API layer
 
-- Replacing the placeholder frontend/app/page.tsx with a real vehicle list — fetching via the useVehicles
+TypeScript types matching the DRF serializers' actual JSON shape (confirmed via testing, not
+guessed) and React Query hooks for vehicle list + detail. `cost` is typed as `string`, not
+`number` — DRF's `DecimalField` serializes to a string specifically to avoid float precision loss
+on money, so the frontend treats it the same way rather than casting it.
+**Where:** `frontend/lib/types.ts`, `frontend/lib/vehicles.ts`
 
-21. Filters UI wired to URL query params (office, active, make, model, date range, mechanic cert)
+### 20. Vehicle list page
 
-- Filter controls (office, active, make, model, maintenance date range, mechanic cert) that read their current value from the URL and write changes back to it
+Replaced the placeholder `frontend/app/page.tsx` with a real fetch via `useVehicles`, with
+explicit `isPending` (not `isLoading` — TanStack Query v5 changed that flag's meaning),
+`isError`, and empty-results branches, matching the README's graded loading/empty/error states.
+**Where:** `frontend/app/page.tsx`
 
-22. Pagination wired to URL query params
+### 21. Filters UI wired to URL query params
 
-- Reading the page query param to fetch the right page of results, and rendering pagination controls that write back to the URL
+Filter controls (office, active, make, model, maintenance date range, mechanic cert) read from
+and write to the URL via `useSearchParams`/`useRouter` — the URL is the single source of truth,
+not component state, so filtered views are shareable/bookmarkable and back/forward works
+correctly. `router.replace` (not `push`) avoids polluting browser history per keystroke; free-text
+fields are debounced 350ms before updating the URL, select-based filters update immediately.
+Changing any filter resets the `page` param back to unset.
+**Where:** `frontend/lib/offices.ts`, `frontend/app/vehicle-filters.tsx`
 
-23. Vehicle detail page — office info, maintenance history, mechanic per record
+### 22. Pagination wired to URL query params
 
-- A dynamic route frontend/app/vehicles/[id]/page.tsx showing full vehicle info, nested office details, and maintenance history with mechanic per record — using the VehicleDetail shape from our Step 6 backend endpoint. Also making the list page's cards clickable to get there.
--
+Same URL-as-source-of-truth pattern as filters, applied to `page`. `PAGE_SIZE = 10` is hardcoded
+on the frontend to match `REST_FRAMEWORK['PAGE_SIZE']` in `backend/server/settings.py` — DRF's
+paginated response includes `count` but not the page size itself, so both sides have to agree on
+it independently.
+**Where:** `frontend/app/page.tsx`
 
-24. Pick + build the "one more endpoint" the README asks for (office summary dashboard, or
-    vehicles-needing-maintenance list, or assign-vehicle action — TBD)
-    - A new route (/needing-maintenance) surfacing the Step 12 backend endpoint — active vehicles never serviced or overdue by 365+ days, oldest first — with a link from the main list page so it's discoverable.
+### 23. Vehicle detail page
 
-25. Polish pass — empty/loading/error states, UX details across all screens
-26. Record the ≤2 min demo video (deliverable)
+Dynamic route showing full vehicle info, nested office, and maintenance history with mechanic per
+record, using the `VehicleDetail` shape from the Step 6 backend endpoint. Confirmed directly
+against the bundled Next.js 16 docs (`node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/page.md`)
+that dynamic route `params` is now a `Promise`, and that Client Component pages (required here
+since the page calls the `useVehicle` hook) should unwrap it with React 19's `use()` — this is
+the documented pattern, not a workaround. List page cards became clickable (`CardActionArea` +
+`component={Link}`) to reach this page.
+**Where:** `frontend/app/vehicles/[id]/page.tsx`, `frontend/app/page.tsx` (card link)
+
+### 24. Vehicles needing maintenance page
+
+The README's "and another endpoint you choose" — picked over office summary/mechanic workload/
+assign-vehicle for being the most compelling read-only "product thinking" feature: a proactive
+dashboard of vehicles overdue or never serviced, not just another data list. Same URL-driven
+pagination pattern as steps 21/22 for consistency. Client-side "days ago"/"Never serviced"
+formatting from the raw `last_maintenance_date`.
+**Where:** `frontend/lib/needing-maintenance.ts`, `frontend/app/needing-maintenance/page.tsx`,
+`frontend/app/page.tsx` (nav button)
+
+### 25. Polish pass
+
+Two focused improvements: a persistent `AppHeader` (nav bar linking Vehicles / Needing
+Maintenance) so the app reads as one product instead of three disconnected pages, and a working
+**Retry** button on every error state (via React Query's `refetch`) — directly answers the
+README's "handling of loading/empty/error cases" wording, since an error state with no recovery
+path was a dead end before this.
+**Where:** `frontend/app/app-header.tsx`, `frontend/app/layout.tsx`, plus retry buttons added to
+`frontend/app/page.tsx`, `frontend/app/vehicles/[id]/page.tsx`, `frontend/app/needing-maintenance/page.tsx`
+
+### 26. Create/edit/delete vehicle forms
+
+Re-read the README's frontend instructions mid-build: "implement a front-end that uses **the CRUD
+endpoints**..." — up to this point the frontend only implemented reads (list, detail,
+needing-maintenance), which didn't fully satisfy that line. Added a shared `VehicleFormDialog`
+(MUI `Dialog`) used both for create ("+ Add Vehicle" on the list page) and edit (from the detail
+page), plus a delete action with a confirmation dialog. Backend validation errors (DRF's
+`{"field": ["message"]}` 400 shape) are parsed and shown under the relevant form field rather than
+re-implementing those validation rules on the frontend — the backend stays the single source of
+truth for what's valid.
+**Where:** `frontend/app/vehicle-form-dialog.tsx`, `frontend/lib/types.ts` (`VehicleWriteInput`),
+`frontend/lib/vehicles.ts` (mutations), `frontend/app/page.tsx`, `frontend/app/vehicles/[id]/page.tsx`
+
+### 27. Demo video
+
+≤2 minute recording of the frontend working end-to-end against the backend, per the README
+deliverable — not something scriptable, recorded manually.
 
 ---
 
 ## Assumptions
+
+### Backend
 
 - `Mechanic.certification_number` is unique — not stated explicitly in the domain description,
   but two mechanics sharing a cert number didn't make domain sense.
@@ -267,7 +331,22 @@ without a test failure.
   README, added to support an edit-vehicle form checking for conflicts against _other_ vehicles
   without flagging itself.
 
+### Frontend
+
+- "Vehicles needing maintenance" was chosen as the README's "another endpoint you choose," over
+  office summary, mechanic workload, or assign-vehicle — picked as the most compelling read-only
+  "product thinking" feature (a proactive alert dashboard) versus another plain data list.
+- The frontend does not duplicate backend validation rules (VIN/plate uniqueness, year range,
+  etc.) in the create/edit vehicle form — it submits and displays whatever `400` field errors the
+  backend returns. The backend stays the single source of truth for what's valid.
+- `/api/offices/` is paginated (default DRF pagination) and the office filter/form dropdowns only
+  fetch page 1 of offices — acceptable given the seed data's small office count (5 by default),
+  not fixed since it would require backend pagination changes for a scenario this challenge
+  doesn't actually exercise.
+
 ## Tradeoffs
+
+### Backend
 
 - Used `django-filter` for vehicle search rather than hand-rolled query-param parsing — less code,
   standard DRF pattern, at the cost of one extra dependency.
@@ -289,3 +368,19 @@ without a test failure.
   unhandled 500.
 - No authentication implemented — per the README, not required; the optional JWT bonus was not
   attempted given time constraints.
+
+### Frontend
+
+- All pages are Client Components (`'use client'`) driven by React Query, rather than using
+  Next.js Server Component data fetching — since data fetching here is fully client-driven through
+  axios, Client Components sidestep Next 16's async `params`/`searchParams` Promises entirely and
+  match the framework's own documented pattern for "client controls the fetch" scenarios.
+- Filter and pagination state live entirely in the URL query string rather than component state —
+  more boilerplate (constructing `URLSearchParams` by hand) in exchange for shareable/bookmarkable
+  filtered views and correct browser back/forward behavior.
+- Free-text filters (make, model, mechanic cert) are debounced 350ms client-side before updating
+  the URL/refetching, rather than pulling in a debounce library — select-based filters update
+  immediately since there's no "typing" to debounce.
+- Money and dates on the maintenance history cards are displayed in raw API format (e.g.
+  `"100.00"`, `"2026-06-09"`) rather than locale-formatted — a known polish gap, not a correctness
+  issue.

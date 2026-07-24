@@ -64,3 +64,13 @@ export interface VehicleNeedingMaintenance {
   office: number;
   last_maintenance_date: string | null;
 }
+
+export interface VehicleWriteInput {
+  vin: string;
+  license_plate: string;
+  make: string;
+  model: string;
+  year: number;
+  office: number;
+  active: boolean;
+}
