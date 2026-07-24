@@ -14,6 +14,7 @@ import {
   Pagination,
   Stack,
   Typography,
+  Button,
 } from '@mui/material';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useVehiclesNeedingMaintenance } from '@/lib/needing-maintenance';
@@ -31,7 +32,7 @@ function NeedingMaintenanceList() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page') ?? '1');
-  const { data, isPending, isError, error } = useVehiclesNeedingMaintenance(page);
+  const { data, isPending, isError, error, refetch } = useVehiclesNeedingMaintenance(page);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.count / PAGE_SIZE)) : 1;
 
@@ -54,7 +55,14 @@ function NeedingMaintenanceList() {
       )}
 
       {isError && (
-        <Alert severity="error">
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+        >
           Failed to load vehicles: {error instanceof Error ? error.message : 'Unknown error'}
         </Alert>
       )}

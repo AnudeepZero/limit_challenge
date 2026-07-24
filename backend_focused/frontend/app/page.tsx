@@ -52,7 +52,7 @@ function VehicleList() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filters = buildFilters(searchParams);
-  const { data, isPending, isError, error } = useVehicles(filters);
+  const { data, isPending, isError, error, refetch } = useVehicles(filters);
 
   const currentPage = filters.page ?? 1;
   const totalPages = data ? Math.max(1, Math.ceil(data.count / PAGE_SIZE)) : 1;
@@ -78,7 +78,14 @@ function VehicleList() {
       )}
 
       {isError && (
-        <Alert severity="error">
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+        >
           Failed to load vehicles: {error instanceof Error ? error.message : 'Unknown error'}
         </Alert>
       )}

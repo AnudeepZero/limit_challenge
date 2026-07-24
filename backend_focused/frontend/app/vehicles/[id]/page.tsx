@@ -13,6 +13,7 @@ import {
   Divider,
   Stack,
   Typography,
+  Button,
 } from '@mui/material';
 import { isAxiosError } from 'axios';
 import { useVehicle } from '@/lib/vehicles';
@@ -20,7 +21,7 @@ import { useVehicle } from '@/lib/vehicles';
 export default function VehicleDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const vehicleId = Number(id);
-  const { data: vehicle, isPending, isError, error } = useVehicle(vehicleId);
+  const { data: vehicle, isPending, isError, error, refetch } = useVehicle(vehicleId);
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
@@ -33,7 +34,17 @@ export default function VehicleDetailPage({ params }: { params: Promise<{ id: st
       )}
 
       {isError && (
-        <Alert severity="error" sx={{ mt: 3 }}>
+        <Alert
+          severity="error"
+          sx={{ mt: 3 }}
+          action={
+            isAxiosError(error) && error.response?.status === 404 ? undefined : (
+              <Button color="inherit" size="small" onClick={() => refetch()}>
+                Retry
+              </Button>
+            )
+          }
+        >
           {isAxiosError(error) && error.response?.status === 404
             ? 'Vehicle not found.'
             : `Failed to load vehicle: ${error instanceof Error ? error.message : 'Unknown error'}`}
