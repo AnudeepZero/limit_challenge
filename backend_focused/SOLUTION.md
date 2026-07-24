@@ -230,7 +230,14 @@ without a test failure.
 - Filter controls (office, active, make, model, maintenance date range, mechanic cert) that read their current value from the URL and write changes back to it
 
 22. Pagination wired to URL query params
+
+- Reading the page query param to fetch the right page of results, and rendering pagination controls that write back to the URL
+
 23. Vehicle detail page — office info, maintenance history, mechanic per record
+
+- A dynamic route frontend/app/vehicles/[id]/page.tsx showing full vehicle info, nested office details, and maintenance history with mechanic per record — using the VehicleDetail shape from our Step 6 backend endpoint. Also making the list page's cards clickable to get there.
+-
+
 24. Pick + build the "one more endpoint" the README asks for (office summary dashboard, or
     vehicles-needing-maintenance list, or assign-vehicle action — TBD)
 25. Polish pass — empty/loading/error states, UX details across all screens

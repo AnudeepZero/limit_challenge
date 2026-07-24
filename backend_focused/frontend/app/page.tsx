@@ -6,16 +6,22 @@ import {
   Box,
   Card,
   CardContent,
+  CardActionArea,
   Chip,
   CircularProgress,
   Container,
+  Pagination,
   Stack,
   Typography,
 } from '@mui/material';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useVehicles } from '@/lib/vehicles';
 import type { VehicleFilters } from '@/lib/types';
 import VehicleFiltersBar from './vehicle-filters';
+import Link from 'next/link';
+
+// Must match REST_FRAMEWORK['PAGE_SIZE'] in backend/server/settings.py
+const PAGE_SIZE = 10;
 
 function buildFilters(searchParams: URLSearchParams): VehicleFilters {
   const filters: VehicleFilters = {};
@@ -26,6 +32,7 @@ function buildFilters(searchParams: URLSearchParams): VehicleFilters {
   const maintenanceFrom = searchParams.get('maintenance_from');
   const maintenanceTo = searchParams.get('maintenance_to');
   const mechanicCert = searchParams.get('mechanic_certification_number');
+  const page = searchParams.get('page');
 
   if (office) filters.office = Number(office);
   if (active) filters.active = active === 'true';
@@ -34,14 +41,30 @@ function buildFilters(searchParams: URLSearchParams): VehicleFilters {
   if (maintenanceFrom) filters.maintenance_from = maintenanceFrom;
   if (maintenanceTo) filters.maintenance_to = maintenanceTo;
   if (mechanicCert) filters.mechanic_certification_number = mechanicCert;
+  if (page) filters.page = Number(page);
 
   return filters;
 }
 
 function VehicleList() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const filters = buildFilters(searchParams);
   const { data, isPending, isError, error } = useVehicles(filters);
+
+  const currentPage = filters.page ?? 1;
+  const totalPages = data ? Math.max(1, Math.ceil(data.count / PAGE_SIZE)) : 1;
+
+  function handlePageChange(_event: React.ChangeEvent<unknown>, page: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (page > 1) {
+      params.set('page', String(page));
+    } else {
+      params.delete('page');
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   return (
     <>
@@ -64,26 +87,41 @@ function VehicleList() {
       )}
 
       {data && data.results.length > 0 && (
-        <Stack spacing={2}>
-          {data.results.map((vehicle) => (
-            <Card key={vehicle.id} variant="outlined">
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="h6">
-                    {vehicle.year} {vehicle.make} {vehicle.model}
-                  </Typography>
-                  <Chip
-                    label={vehicle.active ? 'Active' : 'Inactive'}
-                    color={vehicle.active ? 'success' : 'default'}
-                    size="small"
-                  />
-                </Stack>
-                <Typography color="text.secondary">VIN: {vehicle.vin}</Typography>
-                <Typography color="text.secondary">Plate: {vehicle.license_plate}</Typography>
-              </CardContent>
-            </Card>
-          ))}
-        </Stack>
+        <>
+          <Stack spacing={2}>
+            {data.results.map((vehicle) => (
+              <Card key={vehicle.id} variant="outlined">
+                <CardActionArea component={Link} href={`/vehicles/${vehicle.id}`}>
+                  <CardContent>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography variant="h6">
+                        {vehicle.year} {vehicle.make} {vehicle.model}
+                      </Typography>
+                      <Chip
+                        label={vehicle.active ? 'Active' : 'Inactive'}
+                        color={vehicle.active ? 'success' : 'default'}
+                        size="small"
+                      />
+                    </Stack>
+                    <Typography color="text.secondary">VIN: {vehicle.vin}</Typography>
+                    <Typography color="text.secondary">Plate: {vehicle.license_plate}</Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            ))}
+          </Stack>
+
+          {totalPages > 1 && (
+            <Box display="flex" justifyContent="center" mt={3}>
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+              />
+            </Box>
+          )}
+        </>
       )}
     </>
   );
