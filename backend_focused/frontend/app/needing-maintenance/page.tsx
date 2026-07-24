@@ -1,66 +1,44 @@
 'use client';
 
 import { Suspense } from 'react';
+import Link from 'next/link';
 import {
   Alert,
   Box,
   Card,
-  CardContent,
   CardActionArea,
+  CardContent,
   Chip,
   CircularProgress,
   Container,
   Pagination,
   Stack,
   Typography,
-  Button,
 } from '@mui/material';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useVehicles } from '@/lib/vehicles';
-import type { VehicleFilters } from '@/lib/types';
-import VehicleFiltersBar from './vehicle-filters';
-import Link from 'next/link';
+import { useVehiclesNeedingMaintenance } from '@/lib/needing-maintenance';
 
-// Must match REST_FRAMEWORK['PAGE_SIZE'] in backend/server/settings.py
 const PAGE_SIZE = 10;
 
-function buildFilters(searchParams: URLSearchParams): VehicleFilters {
-  const filters: VehicleFilters = {};
-  const office = searchParams.get('office');
-  const active = searchParams.get('active');
-  const make = searchParams.get('make');
-  const model = searchParams.get('model');
-  const maintenanceFrom = searchParams.get('maintenance_from');
-  const maintenanceTo = searchParams.get('maintenance_to');
-  const mechanicCert = searchParams.get('mechanic_certification_number');
-  const page = searchParams.get('page');
-
-  if (office) filters.office = Number(office);
-  if (active) filters.active = active === 'true';
-  if (make) filters.make = make;
-  if (model) filters.model = model;
-  if (maintenanceFrom) filters.maintenance_from = maintenanceFrom;
-  if (maintenanceTo) filters.maintenance_to = maintenanceTo;
-  if (mechanicCert) filters.mechanic_certification_number = mechanicCert;
-  if (page) filters.page = Number(page);
-
-  return filters;
+function daysSince(dateString: string) {
+  const then = new Date(dateString).getTime();
+  const now = Date.now();
+  return Math.floor((now - then) / (1000 * 60 * 60 * 24));
 }
 
-function VehicleList() {
+function NeedingMaintenanceList() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const filters = buildFilters(searchParams);
-  const { data, isPending, isError, error } = useVehicles(filters);
+  const page = Number(searchParams.get('page') ?? '1');
+  const { data, isPending, isError, error } = useVehiclesNeedingMaintenance(page);
 
-  const currentPage = filters.page ?? 1;
   const totalPages = data ? Math.max(1, Math.ceil(data.count / PAGE_SIZE)) : 1;
 
-  function handlePageChange(_event: React.ChangeEvent<unknown>, page: number) {
+  function handlePageChange(_event: React.ChangeEvent<unknown>, newPage: number) {
     const params = new URLSearchParams(searchParams.toString());
-    if (page > 1) {
-      params.set('page', String(page));
+    if (newPage > 1) {
+      params.set('page', String(newPage));
     } else {
       params.delete('page');
     }
@@ -69,8 +47,6 @@ function VehicleList() {
 
   return (
     <>
-      <VehicleFiltersBar />
-
       {isPending && (
         <Box display="flex" justifyContent="center" py={6}>
           <CircularProgress />
@@ -84,7 +60,7 @@ function VehicleList() {
       )}
 
       {data && data.results.length === 0 && (
-        <Alert severity="info">No vehicles match your search.</Alert>
+        <Alert severity="success">Nothing overdue — every active vehicle is up to date.</Alert>
       )}
 
       {data && data.results.length > 0 && (
@@ -99,8 +75,12 @@ function VehicleList() {
                         {vehicle.year} {vehicle.make} {vehicle.model}
                       </Typography>
                       <Chip
-                        label={vehicle.active ? 'Active' : 'Inactive'}
-                        color={vehicle.active ? 'success' : 'default'}
+                        label={
+                          vehicle.last_maintenance_date === null
+                            ? 'Never serviced'
+                            : `${daysSince(vehicle.last_maintenance_date)} days ago`
+                        }
+                        color="error"
                         size="small"
                       />
                     </Stack>
@@ -116,7 +96,7 @@ function VehicleList() {
             <Box display="flex" justifyContent="center" mt={3}>
               <Pagination
                 count={totalPages}
-                page={currentPage}
+                page={page}
                 onChange={handlePageChange}
                 color="primary"
               />
@@ -128,21 +108,16 @@ function VehicleList() {
   );
 }
 
-export default function HomePage() {
+export default function NeedingMaintenancePage() {
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Fleet Vehicles
+      <Link href="/">&larr; Back to vehicles</Link>
+      <Typography variant="h4" component="h1" sx={{ mt: 2 }} gutterBottom>
+        Vehicles Needing Maintenance
       </Typography>
-      <Button
-        component={Link}
-        href="/needing-maintenance"
-        color="warning"
-        variant="outlined"
-        sx={{ mb: 3 }}
-      >
-        ⚠ View vehicles needing maintenance
-      </Button>
+      <Typography color="text.secondary" sx={{ mb: 3 }}>
+        Active vehicles never serviced, or last serviced more than 365 days ago.
+      </Typography>
       <Suspense
         fallback={
           <Box display="flex" justifyContent="center" py={6}>
@@ -150,7 +125,7 @@ export default function HomePage() {
           </Box>
         }
       >
-        <VehicleList />
+        <NeedingMaintenanceList />
       </Suspense>
     </Container>
   );

@@ -53,3 +53,14 @@ export interface VehicleFilters {
   mechanic_certification_number?: string;
   page?: number;
 }
+
+export interface VehicleNeedingMaintenance {
+  id: number;
+  vin: string;
+  license_plate: string;
+  make: string;
+  model: string;
+  year: number;
+  office: number;
+  last_maintenance_date: string | null;
+}

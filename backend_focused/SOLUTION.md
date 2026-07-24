@@ -240,6 +240,8 @@ without a test failure.
 
 24. Pick + build the "one more endpoint" the README asks for (office summary dashboard, or
     vehicles-needing-maintenance list, or assign-vehicle action — TBD)
+    - A new route (/needing-maintenance) surfacing the Step 12 backend endpoint — active vehicles never serviced or overdue by 365+ days, oldest first — with a link from the main list page so it's discoverable.
+
 25. Polish pass — empty/loading/error states, UX details across all screens
 26. Record the ≤2 min demo video (deliverable)
 
